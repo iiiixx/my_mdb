@@ -24,6 +24,9 @@ func NewRouter(app *service.App) http.Handler {
 	mh := handler.NewMovies(app)
 	rh := handler.NewRatings(app)
 
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 	r.Route("/api", func(r chi.Router) {
 		r.Post("/users", ah.CreateUser)
 		r.Get("/users/{userID}/validate", ah.ValidateUser)
