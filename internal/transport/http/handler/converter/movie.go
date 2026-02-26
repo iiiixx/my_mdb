@@ -26,7 +26,7 @@ func ToMovieDetailsResponse(in *service.MovieDetailsResponse) dto.MovieDetailsRe
 	}
 
 	for _, c := range in.Similar {
-		out.Similar = append(out.Similar, toMovieCard(c))
+		out.Similar = append(out.Similar, ToMovieCard(c))
 	}
 
 	return out
