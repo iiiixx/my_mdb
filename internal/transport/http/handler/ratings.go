@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"my_mdb/internal/service"
-	"my_mdb/internal/transport/http/middleware"
+	middleware "my_mdb/internal/transport/http/mymiddleware"
 	"my_mdb/internal/transport/http/respond"
 
 	"github.com/go-chi/chi/v5"
