@@ -66,15 +66,19 @@ func (r *MoviesRepo) SearchMovies(ctx context.Context, q string, limit int) ([]d
 		limit = 20
 	}
 
-	like := "%" + q + "%"
+	prefix := q + "%"
+	any := "%" + q + "%"
 
 	rows, err := r.pool.Query(ctx, `
 		SELECT movie_id, title, year, genres, imdb_id, tmdb_id
 		FROM movies
-		WHERE title ILIKE $1
-		ORDER BY year DESC NULLS LAST, title ASC
-		LIMIT $2
-	`, like, limit)
+		WHERE title ILIKE $2
+		ORDER BY
+			CASE WHEN title ILIKE $1 THEN 0 ELSE 1 END,
+			POSITION(LOWER($4) IN LOWER(title)) ASC,
+			title ASC
+		LIMIT $3
+	`, prefix, any, limit, q)
 	if err != nil {
 		return nil, err
 	}
@@ -127,10 +131,12 @@ func (r *MoviesRepo) ListMoviesByGenre(ctx context.Context, genre string, limit 
 	}
 
 	rows, err := r.pool.Query(ctx, `
-		SELECT movie_id, title, year, genres, imdb_id, tmdb_id
-		FROM movies
-		WHERE $1 = ANY(genres)
-		ORDER BY year DESC NULLS LAST, title ASC
+		SELECT m.movie_id, m.title, m.year, m.genres, m.imdb_id, m.tmdb_id
+		FROM movies m
+		LEFT JOIN top_movies t ON t.movie_id = m.movie_id
+		WHERE $1 = ANY(m.genres)
+		ORDER BY t.weighted_score DESC NULLS LAST,
+		         m.title ASC
 		LIMIT $2
 	`, genre, limit)
 	if err != nil {
@@ -156,9 +162,10 @@ func (r *MoviesRepo) TopMovies(ctx context.Context, limit int) ([]domain.Movie, 
 
 	rows, err := r.pool.Query(ctx, `
 		SELECT m.movie_id, m.title, m.year, m.genres, m.imdb_id, m.tmdb_id
-		FROM top_movies t
-		JOIN movies m ON m.movie_id = t.movie_id
-		ORDER BY t.score DESC
+		FROM movie_rating_stats s
+		JOIN movies m ON m.movie_id = s.movie_id
+		WHERE s.weighted_score IS NOT NULL
+		ORDER BY s.weighted_score DESC, s.votes DESC, m.title ASC
 		LIMIT $1
 	`, limit)
 	if err != nil {
