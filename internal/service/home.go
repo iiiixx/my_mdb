@@ -12,6 +12,7 @@ import (
 type HomeServiceDeps struct {
 	Movies  MoviesRepo
 	Ratings RatingsRepo
+	Tags    TagsRepo
 
 	RecsRepo  RecommendationsRepo
 	RecClient RecClient
@@ -23,6 +24,7 @@ type HomeServiceDeps struct {
 type HomeService struct {
 	movies   MoviesRepo
 	ratings  RatingsRepo
+	tags     TagsRepo
 	recsRepo RecommendationsRepo
 	rec      RecClient
 	cfg      config.Config
@@ -33,6 +35,7 @@ func NewHomeService(d HomeServiceDeps) *HomeService {
 	return &HomeService{
 		movies:   d.Movies,
 		ratings:  d.Ratings,
+		tags:     d.Tags,
 		recsRepo: d.RecsRepo,
 		rec:      d.RecClient,
 		cfg:      d.Cfg,
@@ -44,57 +47,36 @@ type HomePage struct {
 	ForYou     []domain.MovieCard
 	Top200Pick []domain.MovieCard
 	Genres     []string
-	Changing   ChangingBlock
-}
-
-type ChangingBlock struct {
-	Kind   string
-	Title  string
-	Movies []domain.MovieCard
+	Changing   domain.ChangingBlock
 }
 
 func (s *HomeService) BuildHome(ctx context.Context, userID int) (*HomePage, error) {
-	// 1) For you (5)
 	forYou, err := s.GetForYou(ctx, userID, 5)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2) random 5 from top-200
 	topPickMovies, err := s.movies.RandomFromTop(ctx, 200, 5)
 	if err != nil {
 		return nil, err
 	}
-	topPickCards := make([]domain.MovieCard, 0, len(topPickMovies))
-	for i := range topPickMovies {
-		topPickCards = append(topPickCards, toCard(topPickMovies[i], nil, nil, nil))
-	}
+	topPickCards := toCards(topPickMovies)
 
-	// 3) genres
 	genres, err := s.movies.ListGenres(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// 4) changing block
-	nineties, err := s.movies.MoviesByYearRange(ctx, 1990, 1999, 10)
+	changing, err := s.pickChangingBlockDaily(ctx, userID, 10)
 	if err != nil {
 		return nil, err
-	}
-	chCards := make([]domain.MovieCard, 0, len(nineties))
-	for i := range nineties {
-		chCards = append(chCards, toCard(nineties[i], nil, nil, nil))
 	}
 
 	return &HomePage{
 		ForYou:     forYou,
 		Top200Pick: topPickCards,
 		Genres:     genres,
-		Changing: ChangingBlock{
-			Kind:   "nineties",
-			Title:  "Фильмы 90-ых",
-			Movies: chCards,
-		},
+		Changing:   changing,
 	}, nil
 }
 
@@ -151,4 +133,12 @@ func toCard(m domain.Movie, posterURL *string, userRate *float32, recScore *floa
 		UserRate:  userRate,
 		RecScore:  recScore,
 	}
+}
+
+func toCards(movies []domain.Movie) []domain.MovieCard {
+	out := make([]domain.MovieCard, 0, len(movies))
+	for i := range movies {
+		out = append(out, toCard(movies[i], nil, nil, nil))
+	}
+	return out
 }

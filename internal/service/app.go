@@ -48,6 +48,7 @@ func NewApp(d Deps) *App {
 		Home: NewHomeService(HomeServiceDeps{
 			Movies:    d.Movies,
 			Ratings:   d.Ratings,
+			Tags:      d.Tags,
 			RecsRepo:  d.Recs,
 			RecClient: d.Rec,
 			Log:       d.Log,

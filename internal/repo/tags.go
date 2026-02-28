@@ -34,7 +34,8 @@ func (r *TagsRepo) TopMoviesByTagQuery(
 		FROM genome_tags gt
 		JOIN genome_scores gs ON gs.tag_id = gt.tag_id
 		WHERE gt.tag ILIKE $1
-		ORDER BY gs.relevance DESC
+		GROUP BY gs.movie_id
+		ORDER BY MAX(gs.relevance) DESC
 		LIMIT $2
 	`, "%"+tagQuery+"%", limit)
 	if err != nil {
