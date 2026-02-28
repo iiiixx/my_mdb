@@ -29,7 +29,7 @@ func NewRouter(app *service.App) http.Handler {
 	})
 	r.Route("/api", func(r chi.Router) {
 		r.Post("/users", ah.CreateUser)
-		r.Get("/users/{userID}/validate", ah.ValidateUser)
+		//r.Get("/users/{userID}/validate", ah.ValidateUser)
 
 		r.Get("/movies/search", mh.Search)
 		r.Get("/movies/top200", mh.Top200)
