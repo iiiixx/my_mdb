@@ -3,7 +3,9 @@ package repo
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 
 	"my_mdb/internal/domain"
 
@@ -133,10 +135,12 @@ func (r *MoviesRepo) ListMoviesByGenre(ctx context.Context, genre string, limit 
 	rows, err := r.pool.Query(ctx, `
 		SELECT m.movie_id, m.title, m.year, m.genres, m.imdb_id, m.tmdb_id
 		FROM movies m
-		LEFT JOIN top_movies t ON t.movie_id = m.movie_id
+		LEFT JOIN movie_rating_stats s ON s.movie_id = m.movie_id
 		WHERE $1 = ANY(m.genres)
-		ORDER BY t.weighted_score DESC NULLS LAST,
-		         m.title ASC
+		ORDER BY 
+			s.weighted_score DESC NULLS LAST,
+			s.votes DESC NULLS LAST,
+			m.title ASC
 		LIMIT $2
 	`, genre, limit)
 	if err != nil {
@@ -192,36 +196,24 @@ func (r *MoviesRepo) RandomFromTop(ctx context.Context, topN, take int) ([]domai
 		take = 5
 	}
 	if take > topN {
-		return nil, fmt.Errorf("take (%d) must be <= topN (%d)", take, topN)
+		return nil, fmt.Errorf("random from top: take (%d) must be <= topN (%d)", take, topN)
 	}
 
-	rows, err := r.pool.Query(ctx, `
-		WITH top AS (
-			SELECT movie_id
-			FROM top_movies
-			ORDER BY score DESC
-			LIMIT $1
-		)
-		SELECT m.movie_id, m.title, m.year, m.genres, m.imdb_id, m.tmdb_id
-		FROM top
-		JOIN movies m ON m.movie_id = top.movie_id
-		ORDER BY random()
-		LIMIT $2
-	`, topN, take)
+	top, err := r.TopMovies(ctx, topN)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	out := make([]domain.Movie, 0, take)
-	for rows.Next() {
-		var m domain.Movie
-		if err := rows.Scan(&m.ID, &m.Title, &m.Year, &m.Genres, &m.IMDbID, &m.TMDBID); err != nil {
-			return nil, err
-		}
-		out = append(out, m)
+	if len(top) == 0 {
+		return []domain.Movie{}, nil
 	}
-	return out, rows.Err()
+	if take > len(top) {
+		take = len(top)
+	}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	rng.Shuffle(len(top), func(i, j int) { top[i], top[j] = top[j], top[i] })
+
+	return top[:take], nil
 }
 
 func (r *MoviesRepo) MoviesByYearRange(ctx context.Context, yearFrom, yearTo int16, limit int) ([]domain.Movie, error) {
