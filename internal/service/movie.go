@@ -20,35 +20,38 @@ type MoviesServiceDeps struct {
 	Similar SimilarityRepo
 	Tags    TagsRepo
 
-	OMDb OMDbClient
+	OMDb      OMDbClient
+	RecClient RecClient
 
 	Cfg config.Config
 	Log *logrus.Logger
 }
 
 type MoviesService struct {
-	movies  MoviesRepo
-	ratings RatingsRepo
-	posters PostersRepo
-	details MovieDetailsRepo
-	similar SimilarityRepo
-	tags    TagsRepo
-	omdb    OMDbClient
-	cfg     config.Config
-	log     *logrus.Logger
+	movies    MoviesRepo
+	ratings   RatingsRepo
+	posters   PostersRepo
+	details   MovieDetailsRepo
+	similar   SimilarityRepo
+	tags      TagsRepo
+	omdb      OMDbClient
+	recClient RecClient
+	cfg       config.Config
+	log       *logrus.Logger
 }
 
 func NewMoviesService(d MoviesServiceDeps) *MoviesService {
 	return &MoviesService{
-		movies:  d.Movies,
-		ratings: d.Ratings,
-		posters: d.Posters,
-		details: d.Details,
-		similar: d.Similar,
-		tags:    d.Tags,
-		omdb:    d.OMDb,
-		cfg:     d.Cfg,
-		log:     d.Log,
+		movies:    d.Movies,
+		ratings:   d.Ratings,
+		posters:   d.Posters,
+		details:   d.Details,
+		similar:   d.Similar,
+		recClient: d.RecClient,
+		tags:      d.Tags,
+		omdb:      d.OMDb,
+		cfg:       d.Cfg,
+		log:       d.Log,
 	}
 }
 
@@ -94,7 +97,7 @@ func (s *MoviesService) ByGenre(ctx context.Context, genre string, limit int) ([
 }
 
 func (s *MoviesService) WatchedByUser(ctx context.Context, userID int, limit int) ([]domain.MovieCard, error) {
-	ids, err := s.ratings.ListUserRatings(ctx, userID, limit)
+	ids, err := s.ratings.ListUserRatedMovieIDs(ctx, userID, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -134,15 +137,7 @@ func (s *MoviesService) ByTagQuery(ctx context.Context, tagQuery string, limit i
 	return out, nil
 }
 
-type MovieDetailsResponse struct {
-	Movie    domain.Movie
-	Poster   *string
-	Details  json.RawMessage
-	UserRate *float32
-	Similar  []domain.MovieCard
-}
-
-func (s *MoviesService) GetMovieDetails(ctx context.Context, userID int, movieID int) (*MovieDetailsResponse, error) {
+func (s *MoviesService) GetMovieDetails(ctx context.Context, userID int, movieID int) (*domain.MovieDetailsResponse, error) {
 	m, err := s.movies.GetMovieByID(ctx, movieID)
 	if err != nil {
 		return nil, err
@@ -153,71 +148,135 @@ func (s *MoviesService) GetMovieDetails(ctx context.Context, userID int, movieID
 		return nil, err
 	}
 
-	var posterURL *string
-	if s.posters != nil {
-		p, err := s.posters.GetPoster(ctx, movieID)
-		if err == nil && p != nil && p.PosterURL != "" {
-			posterURL = &p.PosterURL
-		}
-	}
+	meta, _ := s.getMovieMeta(ctx, movieID, m.IMDbID, true)
 
-	var details json.RawMessage
-	if s.details != nil {
-		d, err := s.details.GetMovieDetails(ctx, movieID)
-		if err == nil && d != nil && len(d.Payload) > 0 {
-			details = json.RawMessage(d.Payload)
-		} else if err != nil && err != pgx.ErrNoRows {
-			s.log.WithError(err).WithField("movie_id", movieID).Warn("get movie_details failed")
-		}
-	}
-
-	if len(details) == 0 && s.omdb != nil && m.IMDbID != nil && *m.IMDbID > 0 {
-		imdb := fmt.Sprintf("tt%07d", *m.IMDbID)
-
-		omdbCtx, cancel := context.WithTimeout(ctx, s.cfg.OMDbTimeout)
-		defer cancel()
-
-		payload, poster, err := s.omdb.FetchMovie(omdbCtx, imdb)
-		if err != nil {
-			s.log.WithError(err).WithField("imdb_id", imdb).Warn("omdb fetch failed")
-		} else {
-			if len(payload) > 0 {
-				details = json.RawMessage(payload)
-				if s.details != nil {
-					_ = s.details.UpsertMovieDetails(ctx, movieID, payload)
-				}
-			}
-			if poster != nil && *poster != "" {
-				posterURL = poster
-				if s.posters != nil {
-					_ = s.posters.UpsertPoster(ctx, movieID, *poster)
-				}
-			}
-		}
-	}
-
-	simItems, err := s.similar.GetSimilar(ctx, movieID, 5)
+	simItems, err := s.getOrFetchSimilar(ctx, movieID, defaultSimilarLimit)
 	if err != nil {
 		return nil, err
 	}
+
 	simIDs := make([]int, 0, len(simItems))
 	for _, it := range simItems {
 		simIDs = append(simIDs, it.SimilarMovieID)
 	}
+
 	simMovies, err := s.movies.GetMoviesByIDs(ctx, simIDs)
 	if err != nil {
 		return nil, err
 	}
+
 	simCards := make([]domain.MovieCard, 0, len(simMovies))
 	for i := range simMovies {
 		simCards = append(simCards, toCard(simMovies[i], nil, nil, nil))
 	}
 
-	return &MovieDetailsResponse{
+	return &domain.MovieDetailsResponse{
 		Movie:    *m,
-		Poster:   posterURL,
-		Details:  details,
+		Poster:   meta.Poster,
+		Details:  meta.Details,
 		UserRate: userRate,
 		Similar:  simCards,
 	}, nil
+}
+
+const defaultSimilarLimit = 5
+
+func (s *MoviesService) getOrFetchSimilar(ctx context.Context, movieID int, limit int) ([]domain.SimilarItem, error) {
+	if movieID <= 0 {
+		s.log.WithField("movie_id", movieID).Warn("invalid movie_id")
+		return []domain.SimilarItem{}, nil
+	}
+	if limit <= 0 {
+		limit = defaultSimilarLimit
+	}
+
+	items, err := s.similar.GetSimilar(ctx, movieID, limit)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) > 0 {
+		s.log.WithFields(logrus.Fields{"movie_id": movieID, "n": len(items)}).Debug("similar cache hit (db)")
+		return items, nil
+	}
+
+	s.log.WithField("movie_id", movieID).Debug("similar cache miss (db)")
+
+	if s.recClient == nil {
+		s.log.WithField("movie_id", movieID).Warn("recClient is nil; skip rec-service call")
+		return []domain.SimilarItem{}, nil
+	}
+
+	recCtx, cancel := context.WithTimeout(ctx, s.cfg.RecTimeout)
+	defer cancel()
+
+	s.log.WithFields(logrus.Fields{"movie_id": movieID, "limit": limit}).Debug("calling rec-service SimilarMovies")
+
+	items, err = s.recClient.SimilarMovies(recCtx, movieID, limit)
+	if err != nil {
+		s.log.WithError(err).WithField("movie_id", movieID).Warn("rec service similar failed")
+		return []domain.SimilarItem{}, nil
+	}
+
+	s.log.WithFields(logrus.Fields{"movie_id": movieID, "n": len(items)}).Debug("rec-service returned similar")
+
+	if err := s.similar.ReplaceForMovie(ctx, movieID, items); err != nil {
+		s.log.WithError(err).WithField("movie_id", movieID).Warn("failed to save similar to db")
+	}
+
+	return items, nil
+}
+
+func (s *MoviesService) getMovieMeta(ctx context.Context, movieID int, imdbID *int, allowFetch bool) (domain.MovieMeta, error) {
+	var meta domain.MovieMeta
+
+	if s.posters != nil {
+		p, err := s.posters.GetPoster(ctx, movieID)
+		if err == nil && p != nil && p.PosterURL != "" {
+			meta.Poster = &p.PosterURL
+		} else if err != nil && err != pgx.ErrNoRows {
+			s.log.WithError(err).WithField("movie_id", movieID).Warn("get poster failed")
+		}
+	}
+
+	if s.details != nil {
+		d, err := s.details.GetMovieDetails(ctx, movieID)
+		if err == nil && d != nil && len(d.Payload) > 0 {
+			meta.Details = json.RawMessage(d.Payload)
+		} else if err != nil && err != pgx.ErrNoRows {
+			s.log.WithError(err).WithField("movie_id", movieID).Warn("get movie_details failed")
+		}
+	}
+
+	needDetails := len(meta.Details) == 0
+	needPoster := meta.Poster == nil || *meta.Poster == ""
+
+	if !allowFetch || s.omdb == nil || imdbID == nil || *imdbID <= 0 || (!needDetails && !needPoster) {
+		return meta, nil
+	}
+
+	imdb := fmt.Sprintf("tt%07d", *imdbID)
+	omdbCtx, cancel := context.WithTimeout(ctx, s.cfg.OMDbTimeout)
+	defer cancel()
+
+	payload, poster, err := s.omdb.FetchMovie(omdbCtx, imdb)
+	if err != nil {
+		s.log.WithError(err).WithField("imdb_id", imdb).Warn("omdb fetch failed")
+		return meta, nil
+	}
+
+	if needDetails && len(payload) > 0 {
+		meta.Details = json.RawMessage(payload)
+		if s.details != nil {
+			_ = s.details.UpsertMovieDetails(ctx, movieID, payload)
+		}
+	}
+
+	if needPoster && poster != nil && *poster != "" {
+		meta.Poster = poster
+		if s.posters != nil {
+			_ = s.posters.UpsertPoster(ctx, movieID, *poster)
+		}
+	}
+
+	return meta, nil
 }
