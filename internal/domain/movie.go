@@ -1,5 +1,7 @@
 package domain
 
+import "encoding/json"
+
 type Movie struct {
 	ID     int      `json:"id"`
 	Title  string   `json:"title"`
@@ -18,4 +20,17 @@ type MovieCard struct {
 
 	RecScore *float32 `json:"rec_score,omitempty"`
 	UserRate *float32 `json:"user_rating,omitempty"`
+}
+
+type MovieMeta struct {
+	Poster  *string
+	Details json.RawMessage
+}
+
+type MovieDetailsResponse struct {
+	Movie    Movie
+	Poster   *string
+	Details  json.RawMessage
+	UserRate *float32
+	Similar  []MovieCard
 }
