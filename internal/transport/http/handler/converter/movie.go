@@ -2,11 +2,10 @@ package converter
 
 import (
 	"my_mdb/internal/domain"
-	"my_mdb/internal/service"
 	"my_mdb/internal/transport/http/handler/dto"
 )
 
-func ToMovieDetailsResponse(in *service.MovieDetailsResponse) dto.MovieDetailsResponse {
+func ToMovieDetailsResponse(in *domain.MovieDetailsResponse) dto.MovieDetailsResponse {
 	if in == nil {
 		return dto.MovieDetailsResponse{}
 	}
