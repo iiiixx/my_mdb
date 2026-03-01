@@ -4,6 +4,7 @@ import (
 	"context"
 	"my_mdb/internal/domain"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -41,4 +42,45 @@ func (r *SimilarityRepo) GetSimilar(ctx context.Context, movieID int, limit int)
 		out = append(out, it)
 	}
 	return out, rows.Err()
+}
+
+func (r *SimilarityRepo) ReplaceForMovie(ctx context.Context, movieID int, items []domain.SimilarItem) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM movie_similarity
+		WHERE movie_id = $1
+	`, movieID); err != nil {
+		return err
+	}
+
+	if len(items) == 0 {
+		return tx.Commit(ctx)
+	}
+
+	batch := &pgx.Batch{}
+
+	for _, it := range items {
+		batch.Queue(`
+			INSERT INTO movie_similarity (movie_id, similar_movie_id, score)
+			VALUES ($1, $2, $3)
+		`, movieID, it.SimilarMovieID, it.Score)
+	}
+
+	br := tx.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for range items {
+		if _, err := br.Exec(); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
 }
