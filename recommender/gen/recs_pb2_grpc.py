@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import recs_pb2 as recs__pb2
+from . import recs_pb2 as recs__pb2
 
 GRPC_GENERATED_VERSION = '1.78.0'
 GRPC_VERSION = grpc.__version__
@@ -39,12 +39,23 @@ class RecommenderStub(object):
                 request_serializer=recs__pb2.RecommendRequest.SerializeToString,
                 response_deserializer=recs__pb2.RecommendResponse.FromString,
                 _registered_method=True)
+        self.SimilarMovies = channel.unary_unary(
+                '/recs.Recommender/SimilarMovies',
+                request_serializer=recs__pb2.SimilarMoviesRequest.SerializeToString,
+                response_deserializer=recs__pb2.SimilarMoviesResponse.FromString,
+                _registered_method=True)
 
 
 class RecommenderServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Recommend(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SimilarMovies(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +68,11 @@ def add_RecommenderServicer_to_server(servicer, server):
                     servicer.Recommend,
                     request_deserializer=recs__pb2.RecommendRequest.FromString,
                     response_serializer=recs__pb2.RecommendResponse.SerializeToString,
+            ),
+            'SimilarMovies': grpc.unary_unary_rpc_method_handler(
+                    servicer.SimilarMovies,
+                    request_deserializer=recs__pb2.SimilarMoviesRequest.FromString,
+                    response_serializer=recs__pb2.SimilarMoviesResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +102,33 @@ class Recommender(object):
             '/recs.Recommender/Recommend',
             recs__pb2.RecommendRequest.SerializeToString,
             recs__pb2.RecommendResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SimilarMovies(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/recs.Recommender/SimilarMovies',
+            recs__pb2.SimilarMoviesRequest.SerializeToString,
+            recs__pb2.SimilarMoviesResponse.FromString,
             options,
             channel_credentials,
             insecure,

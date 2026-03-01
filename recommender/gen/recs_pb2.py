@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nrecs.proto\x12\x04recs\"2\n\x10RecommendRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\r\n\x05limit\x18\x02 \x01(\x05\"0\n\rRecommendItem\x12\x10\n\x08movie_id\x18\x01 \x01(\x05\x12\r\n\x05score\x18\x02 \x01(\x02\"7\n\x11RecommendResponse\x12\"\n\x05items\x18\x01 \x03(\x0b\x32\x13.recs.RecommendItem2K\n\x0bRecommender\x12<\n\tRecommend\x12\x16.recs.RecommendRequest\x1a\x17.recs.RecommendResponseB\x16Z\x14protos/gen/recs;recsb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nrecs.proto\x12\x04recs\"M\n\x10RecommendRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\r\n\x05limit\x18\x02 \x01(\x05\x12\x19\n\x11\x65xclude_movie_ids\x18\x03 \x03(\x05\"0\n\rRecommendItem\x12\x10\n\x08movie_id\x18\x01 \x01(\x05\x12\r\n\x05score\x18\x02 \x01(\x02\"7\n\x11RecommendResponse\x12\"\n\x05items\x18\x01 \x03(\x0b\x32\x13.recs.RecommendItem\"R\n\x14SimilarMoviesRequest\x12\x10\n\x08movie_id\x18\x01 \x01(\x05\x12\r\n\x05limit\x18\x02 \x01(\x05\x12\x19\n\x11\x65xclude_movie_ids\x18\x03 \x03(\x05\"8\n\x10SimilarMovieItem\x12\x10\n\x08movie_id\x18\x01 \x01(\x05\x12\x12\n\nsimilarity\x18\x02 \x01(\x02\">\n\x15SimilarMoviesResponse\x12%\n\x05items\x18\x01 \x03(\x0b\x32\x16.recs.SimilarMovieItem2\x95\x01\n\x0bRecommender\x12<\n\tRecommend\x12\x16.recs.RecommendRequest\x1a\x17.recs.RecommendResponse\x12H\n\rSimilarMovies\x12\x1a.recs.SimilarMoviesRequest\x1a\x1b.recs.SimilarMoviesResponseB\x16Z\x14protos/gen/recs;recsb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,11 +33,17 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z\024protos/gen/recs;recs'
   _globals['_RECOMMENDREQUEST']._serialized_start=20
-  _globals['_RECOMMENDREQUEST']._serialized_end=70
-  _globals['_RECOMMENDITEM']._serialized_start=72
-  _globals['_RECOMMENDITEM']._serialized_end=120
-  _globals['_RECOMMENDRESPONSE']._serialized_start=122
-  _globals['_RECOMMENDRESPONSE']._serialized_end=177
-  _globals['_RECOMMENDER']._serialized_start=179
-  _globals['_RECOMMENDER']._serialized_end=254
+  _globals['_RECOMMENDREQUEST']._serialized_end=97
+  _globals['_RECOMMENDITEM']._serialized_start=99
+  _globals['_RECOMMENDITEM']._serialized_end=147
+  _globals['_RECOMMENDRESPONSE']._serialized_start=149
+  _globals['_RECOMMENDRESPONSE']._serialized_end=204
+  _globals['_SIMILARMOVIESREQUEST']._serialized_start=206
+  _globals['_SIMILARMOVIESREQUEST']._serialized_end=288
+  _globals['_SIMILARMOVIEITEM']._serialized_start=290
+  _globals['_SIMILARMOVIEITEM']._serialized_end=346
+  _globals['_SIMILARMOVIESRESPONSE']._serialized_start=348
+  _globals['_SIMILARMOVIESRESPONSE']._serialized_end=410
+  _globals['_RECOMMENDER']._serialized_start=413
+  _globals['_RECOMMENDER']._serialized_end=562
 # @@protoc_insertion_point(module_scope)
