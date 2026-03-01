@@ -22,11 +22,12 @@ const (
 )
 
 type RecommendRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Limit           int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	ExcludeMovieIds []int32                `protobuf:"varint,3,rep,packed,name=exclude_movie_ids,json=excludeMovieIds,proto3" json:"exclude_movie_ids,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RecommendRequest) Reset() {
@@ -71,6 +72,13 @@ func (x *RecommendRequest) GetLimit() int32 {
 		return x.Limit
 	}
 	return 0
+}
+
+func (x *RecommendRequest) GetExcludeMovieIds() []int32 {
+	if x != nil {
+		return x.ExcludeMovieIds
+	}
+	return nil
 }
 
 type RecommendItem struct {
@@ -169,21 +177,190 @@ func (x *RecommendResponse) GetItems() []*RecommendItem {
 	return nil
 }
 
+type SimilarMoviesRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	MovieId         int32                  `protobuf:"varint,1,opt,name=movie_id,json=movieId,proto3" json:"movie_id,omitempty"`
+	Limit           int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	ExcludeMovieIds []int32                `protobuf:"varint,3,rep,packed,name=exclude_movie_ids,json=excludeMovieIds,proto3" json:"exclude_movie_ids,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SimilarMoviesRequest) Reset() {
+	*x = SimilarMoviesRequest{}
+	mi := &file_proto_recs_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimilarMoviesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimilarMoviesRequest) ProtoMessage() {}
+
+func (x *SimilarMoviesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_recs_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimilarMoviesRequest.ProtoReflect.Descriptor instead.
+func (*SimilarMoviesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_recs_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SimilarMoviesRequest) GetMovieId() int32 {
+	if x != nil {
+		return x.MovieId
+	}
+	return 0
+}
+
+func (x *SimilarMoviesRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *SimilarMoviesRequest) GetExcludeMovieIds() []int32 {
+	if x != nil {
+		return x.ExcludeMovieIds
+	}
+	return nil
+}
+
+type SimilarMovieItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MovieId       int32                  `protobuf:"varint,1,opt,name=movie_id,json=movieId,proto3" json:"movie_id,omitempty"`
+	Similarity    float32                `protobuf:"fixed32,2,opt,name=similarity,proto3" json:"similarity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SimilarMovieItem) Reset() {
+	*x = SimilarMovieItem{}
+	mi := &file_proto_recs_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimilarMovieItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimilarMovieItem) ProtoMessage() {}
+
+func (x *SimilarMovieItem) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_recs_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimilarMovieItem.ProtoReflect.Descriptor instead.
+func (*SimilarMovieItem) Descriptor() ([]byte, []int) {
+	return file_proto_recs_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SimilarMovieItem) GetMovieId() int32 {
+	if x != nil {
+		return x.MovieId
+	}
+	return 0
+}
+
+func (x *SimilarMovieItem) GetSimilarity() float32 {
+	if x != nil {
+		return x.Similarity
+	}
+	return 0
+}
+
+type SimilarMoviesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*SimilarMovieItem    `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SimilarMoviesResponse) Reset() {
+	*x = SimilarMoviesResponse{}
+	mi := &file_proto_recs_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimilarMoviesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimilarMoviesResponse) ProtoMessage() {}
+
+func (x *SimilarMoviesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_recs_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimilarMoviesResponse.ProtoReflect.Descriptor instead.
+func (*SimilarMoviesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_recs_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SimilarMoviesResponse) GetItems() []*SimilarMovieItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
 var File_proto_recs_proto protoreflect.FileDescriptor
 
 const file_proto_recs_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/recs.proto\x12\x04recs\"A\n" +
+	"\x10proto/recs.proto\x12\x04recs\"m\n" +
 	"\x10RecommendRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x14\n" +
-	"\x05limit\x18\x02 \x01(\x05R\x05limit\"@\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12*\n" +
+	"\x11exclude_movie_ids\x18\x03 \x03(\x05R\x0fexcludeMovieIds\"@\n" +
 	"\rRecommendItem\x12\x19\n" +
 	"\bmovie_id\x18\x01 \x01(\x05R\amovieId\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x02R\x05score\">\n" +
 	"\x11RecommendResponse\x12)\n" +
-	"\x05items\x18\x01 \x03(\v2\x13.recs.RecommendItemR\x05items2K\n" +
+	"\x05items\x18\x01 \x03(\v2\x13.recs.RecommendItemR\x05items\"s\n" +
+	"\x14SimilarMoviesRequest\x12\x19\n" +
+	"\bmovie_id\x18\x01 \x01(\x05R\amovieId\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12*\n" +
+	"\x11exclude_movie_ids\x18\x03 \x03(\x05R\x0fexcludeMovieIds\"M\n" +
+	"\x10SimilarMovieItem\x12\x19\n" +
+	"\bmovie_id\x18\x01 \x01(\x05R\amovieId\x12\x1e\n" +
+	"\n" +
+	"similarity\x18\x02 \x01(\x02R\n" +
+	"similarity\"E\n" +
+	"\x15SimilarMoviesResponse\x12,\n" +
+	"\x05items\x18\x01 \x03(\v2\x16.recs.SimilarMovieItemR\x05items2\x95\x01\n" +
 	"\vRecommender\x12<\n" +
-	"\tRecommend\x12\x16.recs.RecommendRequest\x1a\x17.recs.RecommendResponseB\x16Z\x14protos/gen/recs;recsb\x06proto3"
+	"\tRecommend\x12\x16.recs.RecommendRequest\x1a\x17.recs.RecommendResponse\x12H\n" +
+	"\rSimilarMovies\x12\x1a.recs.SimilarMoviesRequest\x1a\x1b.recs.SimilarMoviesResponseB\x16Z\x14protos/gen/recs;recsb\x06proto3"
 
 var (
 	file_proto_recs_proto_rawDescOnce sync.Once
@@ -197,21 +374,27 @@ func file_proto_recs_proto_rawDescGZIP() []byte {
 	return file_proto_recs_proto_rawDescData
 }
 
-var file_proto_recs_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_recs_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_recs_proto_goTypes = []any{
-	(*RecommendRequest)(nil),  // 0: recs.RecommendRequest
-	(*RecommendItem)(nil),     // 1: recs.RecommendItem
-	(*RecommendResponse)(nil), // 2: recs.RecommendResponse
+	(*RecommendRequest)(nil),      // 0: recs.RecommendRequest
+	(*RecommendItem)(nil),         // 1: recs.RecommendItem
+	(*RecommendResponse)(nil),     // 2: recs.RecommendResponse
+	(*SimilarMoviesRequest)(nil),  // 3: recs.SimilarMoviesRequest
+	(*SimilarMovieItem)(nil),      // 4: recs.SimilarMovieItem
+	(*SimilarMoviesResponse)(nil), // 5: recs.SimilarMoviesResponse
 }
 var file_proto_recs_proto_depIdxs = []int32{
 	1, // 0: recs.RecommendResponse.items:type_name -> recs.RecommendItem
-	0, // 1: recs.Recommender.Recommend:input_type -> recs.RecommendRequest
-	2, // 2: recs.Recommender.Recommend:output_type -> recs.RecommendResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 1: recs.SimilarMoviesResponse.items:type_name -> recs.SimilarMovieItem
+	0, // 2: recs.Recommender.Recommend:input_type -> recs.RecommendRequest
+	3, // 3: recs.Recommender.SimilarMovies:input_type -> recs.SimilarMoviesRequest
+	2, // 4: recs.Recommender.Recommend:output_type -> recs.RecommendResponse
+	5, // 5: recs.Recommender.SimilarMovies:output_type -> recs.SimilarMoviesResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_recs_proto_init() }
@@ -225,7 +408,7 @@ func file_proto_recs_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_recs_proto_rawDesc), len(file_proto_recs_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

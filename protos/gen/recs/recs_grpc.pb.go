@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Recommender_Recommend_FullMethodName = "/recs.Recommender/Recommend"
+	Recommender_Recommend_FullMethodName     = "/recs.Recommender/Recommend"
+	Recommender_SimilarMovies_FullMethodName = "/recs.Recommender/SimilarMovies"
 )
 
 // RecommenderClient is the client API for Recommender service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RecommenderClient interface {
 	Recommend(ctx context.Context, in *RecommendRequest, opts ...grpc.CallOption) (*RecommendResponse, error)
+	SimilarMovies(ctx context.Context, in *SimilarMoviesRequest, opts ...grpc.CallOption) (*SimilarMoviesResponse, error)
 }
 
 type recommenderClient struct {
@@ -47,11 +49,22 @@ func (c *recommenderClient) Recommend(ctx context.Context, in *RecommendRequest,
 	return out, nil
 }
 
+func (c *recommenderClient) SimilarMovies(ctx context.Context, in *SimilarMoviesRequest, opts ...grpc.CallOption) (*SimilarMoviesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SimilarMoviesResponse)
+	err := c.cc.Invoke(ctx, Recommender_SimilarMovies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecommenderServer is the server API for Recommender service.
 // All implementations must embed UnimplementedRecommenderServer
 // for forward compatibility.
 type RecommenderServer interface {
 	Recommend(context.Context, *RecommendRequest) (*RecommendResponse, error)
+	SimilarMovies(context.Context, *SimilarMoviesRequest) (*SimilarMoviesResponse, error)
 	mustEmbedUnimplementedRecommenderServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedRecommenderServer struct{}
 
 func (UnimplementedRecommenderServer) Recommend(context.Context, *RecommendRequest) (*RecommendResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Recommend not implemented")
+}
+func (UnimplementedRecommenderServer) SimilarMovies(context.Context, *SimilarMoviesRequest) (*SimilarMoviesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SimilarMovies not implemented")
 }
 func (UnimplementedRecommenderServer) mustEmbedUnimplementedRecommenderServer() {}
 func (UnimplementedRecommenderServer) testEmbeddedByValue()                     {}
@@ -104,6 +120,24 @@ func _Recommender_Recommend_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Recommender_SimilarMovies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimilarMoviesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecommenderServer).SimilarMovies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Recommender_SimilarMovies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecommenderServer).SimilarMovies(ctx, req.(*SimilarMoviesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Recommender_ServiceDesc is the grpc.ServiceDesc for Recommender service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var Recommender_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Recommend",
 			Handler:    _Recommender_Recommend_Handler,
+		},
+		{
+			MethodName: "SimilarMovies",
+			Handler:    _Recommender_SimilarMovies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
