@@ -40,7 +40,7 @@ func (r *RatingsRepo) GetUserRatingForMovie(ctx context.Context, userID, movieID
 	return &rating, nil
 }
 
-func (r *RatingsRepo) ListUserRatings(ctx context.Context, userID, limit int) ([]int, error) {
+func (r *RatingsRepo) ListUserRatedMovieIDs(ctx context.Context, userID, limit int) ([]int, error) {
 	if limit <= 0 {
 		limit = 30
 	}
