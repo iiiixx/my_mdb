@@ -26,7 +26,7 @@ type MoviesRepo interface {
 type RatingsRepo interface {
 	CountByUser(ctx context.Context, userID int) (int, error)
 	GetUserRatingForMovie(ctx context.Context, userID, movieID int) (*float32, error)
-	ListUserRatings(ctx context.Context, userID, limit int) ([]int, error)
+	ListUserRatedMovieIDs(ctx context.Context, userID, limit int) ([]int, error)
 	UpsertRating(ctx context.Context, userID, movieID int, value float32) error
 }
 
@@ -48,6 +48,7 @@ type RecommendationsRepo interface {
 
 type SimilarityRepo interface {
 	GetSimilar(ctx context.Context, movieID int, limit int) ([]domain.SimilarItem, error)
+	ReplaceForMovie(ctx context.Context, movieID int, items []domain.SimilarItem) error
 }
 
 type TagsRepo interface {
@@ -59,5 +60,6 @@ type OMDbClient interface {
 }
 
 type RecClient interface {
-	Recommend(ctx context.Context, userID int, limit int) ([]domain.RecommendationItem, error)
+	Recommend(ctx context.Context, userID int, limit int, excludeMovieIDs []int) ([]domain.RecommendationItem, error)
+	SimilarMovies(ctx context.Context, movieID int, limit int) ([]domain.SimilarItem, error)
 }
