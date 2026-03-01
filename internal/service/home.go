@@ -85,21 +85,12 @@ func (s *HomeService) GetForYou(ctx context.Context, userID int, limit int) ([]d
 		limit = 20
 	}
 
-	items, err := s.recsRepo.GetByUser(ctx, userID, limit)
+	items, err := s.getOrFetchRecs(ctx, userID, limit)
 	if err != nil {
 		return nil, err
 	}
-
-	if len(items) == 0 && s.rec != nil {
-		recCtx, cancel := context.WithTimeout(ctx, s.cfg.RecTimeout)
-		defer cancel()
-
-		items, err = s.rec.Recommend(recCtx, userID, limit)
-		if err != nil {
-			s.log.WithError(err).WithField("user_id", userID).Warn("rec service recommend failed")
-			return []domain.MovieCard{}, nil
-		}
-		_ = s.recsRepo.ReplaceForUser(ctx, userID, items)
+	if len(items) == 0 {
+		return []domain.MovieCard{}, nil
 	}
 
 	ids := make([]int, 0, len(items))
@@ -121,6 +112,53 @@ func (s *HomeService) GetForYou(ctx context.Context, userID int, limit int) ([]d
 	}
 
 	return out, nil
+}
+
+const userExcludeLimit = 5000
+
+func (s *HomeService) getOrFetchRecs(ctx context.Context, userID int, limit int) ([]domain.RecommendationItem, error) {
+	if userID <= 0 {
+		return []domain.RecommendationItem{}, nil
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+
+	items, err := s.recsRepo.GetByUser(ctx, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) > 0 {
+		return items, nil
+	}
+
+	if s.rec == nil {
+		return []domain.RecommendationItem{}, nil
+	}
+
+	var excludeIDs []int
+	excludeIDs, err = s.ratings.ListUserRatedMovieIDs(ctx, userID, userExcludeLimit)
+	if err != nil {
+		s.log.WithError(err).WithField("user_id", userID).Warn("failed to load user exclude ids")
+		excludeIDs = nil
+	}
+
+	recCtx, cancel := context.WithTimeout(ctx, s.cfg.RecTimeout)
+	defer cancel()
+
+	items, err = s.rec.Recommend(recCtx, userID, limit, excludeIDs)
+	if err != nil {
+		s.log.WithError(err).WithField("user_id", userID).Warn("rec service recommend failed")
+		return []domain.RecommendationItem{}, nil
+	}
+
+	if len(items) > 0 {
+		if err := s.recsRepo.ReplaceForUser(ctx, userID, items); err != nil {
+			s.log.WithError(err).WithField("user_id", userID).Warn("failed to save recs to db")
+		}
+	}
+
+	return items, nil
 }
 
 func toCard(m domain.Movie, posterURL *string, userRate *float32, recScore *float32) domain.MovieCard {
