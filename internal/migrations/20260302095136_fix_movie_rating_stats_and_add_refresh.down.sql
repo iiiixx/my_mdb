@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS refresh_weighted_score(DOUBLE PRECISION);
