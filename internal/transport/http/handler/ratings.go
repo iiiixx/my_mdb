@@ -10,6 +10,7 @@ import (
 	"my_mdb/internal/transport/http/respond"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/sirupsen/logrus"
 )
 
 type RatingsHandler struct {
@@ -42,6 +43,8 @@ func (h *RatingsHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.app.Movies.Rate(r.Context(), userID, movieID, req.Value); err != nil {
+		h.app.Log.WithError(err).WithFields(logrus.Fields{"user_id": userID, "movie_id": movieID, "value": req.Value}).
+			Error("rate movie failed")
 		respond.FromServiceError(w, r, err)
 		return
 	}
