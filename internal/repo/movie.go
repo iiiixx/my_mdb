@@ -243,3 +243,21 @@ func (r *MoviesRepo) MoviesByYearRange(ctx context.Context, yearFrom, yearTo int
 	}
 	return out, rows.Err()
 }
+
+func (r *MoviesRepo) RefreshWeightedScore(ctx context.Context, m float64) error {
+	const lockID int64 = 9238471
+
+	var locked bool
+	if err := r.pool.QueryRow(ctx, `SELECT pg_try_advisory_lock($1)`, lockID).Scan(&locked); err != nil {
+		return err
+	}
+	if !locked {
+		return nil
+	}
+	defer func() {
+		_, _ = r.pool.Exec(context.Background(), `SELECT pg_advisory_unlock($1)`, lockID)
+	}()
+
+	_, err := r.pool.Exec(ctx, `SELECT refresh_weighted_score($1)`, m)
+	return err
+}

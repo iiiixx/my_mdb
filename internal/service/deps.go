@@ -21,6 +21,7 @@ type MoviesRepo interface {
 	TopMovies(ctx context.Context, limit int) ([]domain.Movie, error)
 	RandomFromTop(ctx context.Context, topN, take int) ([]domain.Movie, error)
 	MoviesByYearRange(ctx context.Context, yearFrom, yearTo int16, limit int) ([]domain.Movie, error)
+	RefreshWeightedScore(ctx context.Context, m float64) error
 }
 
 type RatingsRepo interface {
