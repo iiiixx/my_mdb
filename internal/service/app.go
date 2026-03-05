@@ -32,28 +32,30 @@ type Deps struct {
 }
 
 func NewApp(d Deps) *App {
+	moviesvc := NewMoviesService(MoviesServiceDeps{
+		Movies:    d.Movies,
+		Ratings:   d.Ratings,
+		Posters:   d.Posters,
+		Details:   d.Details,
+		Similar:   d.Similar,
+		RecsRepo:  d.Recs,
+		RecClient: d.Rec,
+		Tags:      d.Tags,
+		OMDb:      d.OMDb,
+		Cfg:       d.Cfg,
+		Log:       d.Log,
+	})
 	return &App{
-		Auth: NewAuthService(d.Users, d.Log),
-		Movies: NewMoviesService(MoviesServiceDeps{
-			Movies:    d.Movies,
-			Ratings:   d.Ratings,
-			Posters:   d.Posters,
-			Details:   d.Details,
-			Similar:   d.Similar,
-			RecClient: d.Rec,
-			Tags:      d.Tags,
-			OMDb:      d.OMDb,
-			Cfg:       d.Cfg,
-			Log:       d.Log,
-		}),
+		Auth:   NewAuthService(d.Users, d.Log),
+		Movies: moviesvc,
 		Home: NewHomeService(HomeServiceDeps{
-			Movies:    d.Movies,
-			Ratings:   d.Ratings,
-			Tags:      d.Tags,
-			RecsRepo:  d.Recs,
-			RecClient: d.Rec,
-			Log:       d.Log,
-			Cfg:       d.Cfg,
+			Movies:  d.Movies,
+			Ratings: d.Ratings,
+			Tags:    d.Tags,
+			Posters: moviesvc,
+			Recs:    moviesvc,
+			Log:     d.Log,
+			Cfg:     d.Cfg,
 		}),
 		Log: d.Log,
 	}
