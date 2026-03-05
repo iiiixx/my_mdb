@@ -48,7 +48,6 @@ var tagCategories = []tagCategory{
 		picks: []tagPick{
 			{kind: "tense", title: "Держит в напряжении", query: "tense"},
 			{kind: "plot_twist", title: "Неожиданная развязка", query: "plot twist"},
-			{kind: "mindfuck", title: "Mindfuck", query: "mindfuck"},
 			{kind: "psychological", title: "Психологическое", query: "psychological"},
 			{kind: "suspense", title: "Саспенс", query: "suspense"},
 			{kind: "dark", title: "Мрачное", query: "dark"},
