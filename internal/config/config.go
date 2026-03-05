@@ -11,9 +11,10 @@ type Config struct {
 
 	DBURL string
 
-	OMDbAPIKey  string
-	OMDbBaseURL string
-	OMDbTimeout time.Duration
+	OMDbAPIKey        string
+	OMDbBaseURL       string
+	OMDbTimeout       time.Duration
+	OMDbTimeoutForJob time.Duration
 
 	RecGRPCAddr string
 	RecTimeout  time.Duration
@@ -25,9 +26,10 @@ func Load() Config {
 
 		DBURL: getEnv("DB_URL", "postgres://postgres:postgres@localhost:5433/mdb?sslmode=disable"),
 
-		OMDbAPIKey:  getEnv("OMDB_API_KEY", ""),
-		OMDbBaseURL: getEnv("OMDB_BASE_URL", "https://www.omdbapi.com/"),
-		OMDbTimeout: time.Duration(getEnvInt("OMDB_TIMEOUT_SEC", 5)) * time.Second,
+		OMDbAPIKey:        getEnv("OMDB_API_KEY", ""),
+		OMDbBaseURL:       getEnv("OMDB_BASE_URL", "https://www.omdbapi.com/"),
+		OMDbTimeout:       time.Duration(getEnvInt("OMDB_TIMEOUT_SEC", 5)) * time.Second,
+		OMDbTimeoutForJob: time.Duration(getEnvInt("OMDB_TIMEOUT_FOR_JOB_SEC", 15)) * time.Second,
 
 		RecGRPCAddr: getEnv("REC_GRPC_ADDR", "localhost:50051"),
 		RecTimeout:  time.Duration(getEnvInt("REC_TIMEOUT_SEC", 3)) * time.Second,
