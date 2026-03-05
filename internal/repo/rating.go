@@ -39,6 +39,26 @@ func (r *RatingsRepo) GetUserRatingForMovie(ctx context.Context, userID, movieID
 
 	return &rating, nil
 }
+func (r *RatingsRepo) GetWeightedScoreForMovie(ctx context.Context, movieID int) (*float32, error) {
+	if movieID <= 0 {
+		return nil, nil
+	}
+	var weightedScore float32
+	err := r.pool.QueryRow(ctx, `
+		SELECT ROUND(weighted_score::numeric, 1)::float4
+		FROM movie_rating_stats
+		WHERE movie_id = $1
+	`, movieID).Scan(&weightedScore)
+
+	if err != nil {
+		if err.Error() == "no rows in result set" {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &weightedScore, nil
+}
 
 func (r *RatingsRepo) ListUserRatedMovieIDs(ctx context.Context, userID, limit int) ([]int, error) {
 	if limit <= 0 {

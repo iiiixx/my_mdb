@@ -28,9 +28,10 @@ type MovieMeta struct {
 }
 
 type MovieDetailsResponse struct {
-	Movie    Movie
-	Poster   *string
-	Details  json.RawMessage
-	UserRate *float32
-	Similar  []MovieCard
+	Movie        Movie
+	Poster       *string
+	Details      json.RawMessage
+	UserRate     *float32
+	PlatformRate *float32
+	Similar      []MovieCard
 }
