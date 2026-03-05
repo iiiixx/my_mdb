@@ -32,6 +32,21 @@ func (h *MoviesHandler) Search(w http.ResponseWriter, r *http.Request) {
 	respond.JSON(w, http.StatusOK, out)
 }
 
+func (h *MoviesHandler) Recommendation(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.UserIDFromCtx(r.Context())
+	if !ok {
+		respond.Error(w, r, respond.ErrBadRequest("missing userID in context"))
+		return
+	}
+	res, err := h.app.Movies.Recommendation(r.Context(), userID)
+	if err != nil {
+		respond.FromServiceError(w, r, err)
+		return
+	}
+	out := converter.ToMovieCards(res)
+	respond.JSON(w, http.StatusOK, out)
+}
+
 func (h *MoviesHandler) Top200(w http.ResponseWriter, r *http.Request) {
 	res, err := h.app.Movies.Top200(r.Context())
 	if err != nil {
@@ -54,7 +69,7 @@ func (h *MoviesHandler) Genres(w http.ResponseWriter, r *http.Request) {
 
 func (h *MoviesHandler) ByGenre(w http.ResponseWriter, r *http.Request) {
 	genre := chi.URLParam(r, "genre")
-	limit := parseInt(r.URL.Query().Get("limit"), 20)
+	limit := parseInt(r.URL.Query().Get("limit"), 60)
 
 	res, err := h.app.Movies.ByGenre(r.Context(), genre, limit)
 	if err != nil {
@@ -87,7 +102,7 @@ func (h *MoviesHandler) WatchedByUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := parseInt(r.URL.Query().Get("limit"), 50)
+	limit := parseInt(r.URL.Query().Get("limit"), 100)
 	res, err := h.app.Movies.WatchedByUser(r.Context(), userID, limit)
 	if err != nil {
 		respond.FromServiceError(w, r, err)
