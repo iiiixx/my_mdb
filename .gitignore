@@ -1,1 +1,8 @@
 .env
+init_db
+help.txt
+recommender/venv/
+recommender/model/*.pkl
+__pycache__/
+*.pyc
+recommender/model
