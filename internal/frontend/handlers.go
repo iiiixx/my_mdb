@@ -63,15 +63,10 @@ func (h *Handlers) LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// дергаем твою ручку validate (в этом же хосте)
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/users/%d/validate", uid), nil)
 	rr := &responseRecorder{header: make(http.Header)}
-	http.DefaultServeMux.ServeHTTP(rr, req) // если у тебя не DefaultServeMux — см. ниже "router.go"
+	http.DefaultServeMux.ServeHTTP(rr, req)
 
-	// УПРОЩЕНИЕ: лучше использовать http.Client на http://localhost:8080
-	// но мы сделаем правильно в router.go через "apiBaseURL".
-
-	// Поэтому тут просто редиректим (реальную проверку делаем ниже в router.go вариантом через client)
 	_ = rr
 	http.SetCookie(w, &http.Cookie{Name: cookieName, Value: strconv.Itoa(uid), Path: "/", HttpOnly: true})
 	http.Redirect(w, r, "/", http.StatusFound)
