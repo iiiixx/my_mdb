@@ -23,7 +23,6 @@ func (s *HomeService) pickChangingBlockDaily(ctx context.Context, userID int, li
 
 	rng := newSplitmix64(dailySeed(userID, day))
 
-	// 2 типа блоков: years / tags
 	if rng.intn(2) == 0 {
 		return s.buildChangingByYearRangeRNG(ctx, limit, rng)
 	}
@@ -41,7 +40,7 @@ func (s *HomeService) buildChangingByYearRangeRNG(ctx context.Context, limit int
 	return domain.ChangingBlock{
 		Kind:   p.kind,
 		Title:  p.title,
-		Movies: toCards(movies),
+		Movies: movies,
 	}, nil
 }
 
@@ -70,7 +69,7 @@ func (s *HomeService) buildChangingByTagCategoryRNG(ctx context.Context, limit i
 	return domain.ChangingBlock{
 		Kind:   "tag_" + p.kind,
 		Title:  p.title,
-		Movies: toCards(movies),
+		Movies: movies,
 	}, nil
 }
 
