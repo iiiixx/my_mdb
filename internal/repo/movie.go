@@ -261,3 +261,95 @@ func (r *MoviesRepo) RefreshWeightedScore(ctx context.Context, m float64) error 
 	_, err := r.pool.Exec(ctx, `SELECT refresh_weighted_score($1)`, m)
 	return err
 }
+
+func (r *MoviesRepo) NewReleasesWithGoodRating(ctx context.Context, limit int, minScore float32, minVotes int) ([]domain.Movie, error) {
+	if limit <= 0 {
+		limit = 30
+	}
+	if minScore <= 0 {
+		minScore = 3.8
+	}
+	if minVotes < 0 {
+		minVotes = 0
+	}
+
+	rows, err := r.pool.Query(ctx, `
+		SELECT
+			m.movie_id, m.title, m.year, m.genres, m.imdb_id, m.tmdb_id
+		FROM movies m
+		JOIN movie_rating_stats s ON s.movie_id = m.movie_id
+		WHERE
+			m.year IS NOT NULL
+			AND s.weighted_score IS NOT NULL
+			AND s.weighted_score >= $1
+			AND ($2 = 0 OR COALESCE(s.votes, 0) >= $2)
+		ORDER BY
+			m.year DESC,
+			s.weighted_score DESC,
+			m.title ASC
+		LIMIT $3
+	`, minScore, minVotes, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make([]domain.Movie, 0, limit)
+	for rows.Next() {
+		var m domain.Movie
+		if err := rows.Scan(&m.ID, &m.Title, &m.Year, &m.Genres, &m.IMDbID, &m.TMDBID); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (r *MoviesRepo) ListTopMissingMeta(ctx context.Context, limit int) ([]domain.Movie, error) {
+	if limit <= 0 {
+		limit = 100
+	}
+
+	rows, err := r.pool.Query(ctx, `
+		SELECT
+			m.movie_id,
+			m.title,
+			m.year,
+			m.genres,
+			m.imdb_id,
+			m.tmdb_id
+		FROM movies m
+		JOIN movie_rating_stats ms
+			ON ms.movie_id = m.movie_id
+		LEFT JOIN movie_details d
+			ON d.movie_id = m.movie_id
+		WHERE
+			d.movie_id IS NULL
+			OR d.payload IS NULL
+		ORDER BY ms.weighted_score DESC NULLS LAST, m.movie_id ASC
+		LIMIT $1
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make([]domain.Movie, 0, limit)
+	for rows.Next() {
+		var m domain.Movie
+		if err := rows.Scan(&m.ID, &m.Title, &m.Year, &m.Genres, &m.IMDbID, &m.TMDBID); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
