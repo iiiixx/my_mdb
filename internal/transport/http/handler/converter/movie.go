@@ -18,10 +18,11 @@ func ToMovieDetailsResponse(in *domain.MovieDetailsResponse) dto.MovieDetailsRes
 			Genres: in.Movie.Genres,
 			IMDbID: in.Movie.IMDbID,
 		},
-		Poster:   in.Poster,
-		Details:  in.Details,
-		UserRate: in.UserRate,
-		Similar:  make([]dto.MovieCard, 0, len(in.Similar)),
+		Poster:       in.Poster,
+		Details:      in.Details,
+		UserRate:     in.UserRate,
+		PlatformRate: in.PlatformRate,
+		Similar:      make([]dto.MovieCard, 0, len(in.Similar)),
 	}
 
 	for _, c := range in.Similar {

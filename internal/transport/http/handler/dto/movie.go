@@ -3,11 +3,12 @@ package dto
 import "encoding/json"
 
 type MovieDetailsResponse struct {
-	Movie    Movie           `json:"movie"`
-	Poster   *string         `json:"poster_url,omitempty"`
-	Details  json.RawMessage `json:"details,omitempty"`
-	UserRate *float32        `json:"user_rating,omitempty"`
-	Similar  []MovieCard     `json:"similar"`
+	Movie        Movie           `json:"movie"`
+	Poster       *string         `json:"poster_url,omitempty"`
+	Details      json.RawMessage `json:"details,omitempty"`
+	UserRate     *float32        `json:"user_rating,omitempty"`
+	PlatformRate *float32        `json:"platform_rating,omitempty"`
+	Similar      []MovieCard     `json:"similar"`
 }
 
 type Movie struct {
