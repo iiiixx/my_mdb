@@ -1,0 +1,60 @@
+{{define "content"}}
+<div class="movie-page" id="moviePage" data-movie-id="{{.MovieID}}">
+
+  <div class="movie-hero">
+    <!-- POSTER -->
+    <div class="movie-left">
+      <img class="movie-poster" id="moviePoster" src="" alt="poster">
+    </div>
+
+    <!-- INFO -->
+    <div class="movie-middle">
+      <h1 class="pink" id="movieTitle">...</h1>
+      <div class="muted" id="movieMeta">...</div>
+
+      <div class="movie-info-row">
+        <div class="movie-info-panel muted">
+          <div><strong>Длительность:</strong> <span id="runtime">—</span></div>
+          <div><strong>Дата выхода:</strong> <span id="released">—</span></div>
+          <div><strong>Страна:</strong> <span id="country">—</span></div>
+          <div><strong>Язык:</strong> <span id="language">—</span></div>
+          <div><strong>Режиссёр:</strong> <span id="director">—</span></div>
+          <div><strong>Сценарист:</strong> <span id="writer">—</span></div>
+          <div><strong>Актеры:</strong> <span id="actors">—</span></div>
+          <div><strong>Награды:</strong> <span id="awards">—</span></div>
+          <div><strong>Сборы:</strong> <span id="boxoffice">—</span></div>
+        </div>
+        <div class="movie-right">
+          <div class="platform-rating">
+            <div class="platform-rating-value" id="platformRating">—</div>
+            <div class="muted">Рейтинг платформы</div>
+          </div>
+          <div class="movie-ratings">
+            <div id="ratingsList" class="muted"></div>
+          </div>
+          <div class="rating-box">
+          <div class="rating-row">
+            <div class="muted">Ваш рейтинг: <span id="userRating">—</span></div>
+
+            <div class="rate-controls">
+              <input id="rateValue" type="number" step="0.1" min="0" max="5" placeholder="0 - 5" />
+              <button class="btn btn--primary" id="rateBtn" type="button">Поставить</button>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLOT снизу -->
+  <div class="movie-plot">
+    <h3 class="pink">Сюжет</h3>
+    <div class="muted" id="moviePlot">...</div>
+  </div>
+
+  <h1 class="pink" style="margin-top:30px;">Похожие</h1>
+  <div class="row" id="row-similar"></div>
+
+</div>
+{{end}}

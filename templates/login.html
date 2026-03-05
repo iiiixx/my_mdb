@@ -1,0 +1,31 @@
+{{define "content"}}
+<div class="login">
+  <h1 class="pink">Вход</h1>
+
+  <form method="POST" action="/login" class="login__form" id="loginForm">
+    <label>User ID</label>
+
+    <input id="userIdInput" name="user_id" type="number" min="1" placeholder="Введите ваш id" required />
+
+    {{if .Error}}
+      <div class="error" id="loginError">{{.Error}}</div>
+    {{else}}
+      <div class="error" id="loginError"></div>
+    {{end}}
+
+    <div class="login__actions">
+      <button class="btn btn--primary" type="submit">Войти</button>
+
+      <button
+        type="button"
+        class="btn btn--primary"
+        id="registerBtn">
+        Зарегистрироваться
+      </button>
+    </div>
+
+    <div class="muted" id="registerMsg"></div>
+
+  </form>
+</div>
+{{end}}

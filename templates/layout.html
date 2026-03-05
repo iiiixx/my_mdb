@@ -1,0 +1,48 @@
+{{define "layout"}}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+
+<body 
+  data-uid="{{.UserID}}" 
+  data-page="{{.Page}}" 
+  data-param="{{.Param}}">
+
+<header class="header">
+  <div class="header__inner">
+    <a class="logo" href="/">MyMDB</a>
+
+    <button class="btn btn--ghost" id="menuBtn" type="button">Меню</button>
+
+    <div class="searchbox" id="searchbox">
+      <input id="searchInput" type="text" placeholder="Поиск фильмов..." autocomplete="off" />
+      <div class="search-dd hidden" id="searchDropdown"></div>
+    </div>
+
+    <div class="header__right">
+      <span class="uid">User: {{.UserID}}</span>
+      <a class="btn btn--ghost" href="/logout">Выйти</a>
+    </div>
+  </div>
+</header>
+
+<div class="menu hidden" id="sideMenu">
+  <a href="/watched">Просмотренные</a>
+  <a href="/top200">Топ 200</a>
+  <a href="/genres">Жанры</a>
+  <a href="/recommended">Для вас</a>
+</div>
+
+<main class="page">
+  {{block "content" .}}{{end}}
+</main>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
+{{end}}

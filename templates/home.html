@@ -1,0 +1,51 @@
+{{define "content"}}
+<section class="section">
+  <div class="section__head">
+    <h2 class="section__title">Для вас</h2>
+    <a class="btn btn--ghost" href="/recommended">Посмотреть всё</a>
+  </div>
+  <div class="row" id="row-recommended">
+    {{template "skeleton_row" .}}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section__head">
+    <h2 class="section__title">Из топа 200</h2>
+    <a class="btn btn--ghost" href="/top200">Посмотреть всё</a>
+  </div>
+  <div class="row" id="row-top200">
+    {{template "skeleton_row" .}}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section__head">
+    <h2 class="section__title" id="changingTitle">Loading...</h2>
+  </div>
+  <div class="row" id="row-changing">
+    {{template "skeleton_row" .}}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section__head">
+    <h2 class="section__title">По жанрам</h2>
+  </div>
+  <div class="genres-row" id="genres-row">
+    <div class="genre-pill skeleton-pill"></div>
+    <div class="genre-pill skeleton-pill"></div>
+    <div class="genre-pill skeleton-pill"></div>
+    <div class="genre-pill skeleton-pill"></div>
+    <div class="genre-pill skeleton-pill"></div>
+  </div>
+</section>
+{{end}}
+
+{{define "skeleton_row"}}
+  <div class="card skeleton"></div>
+  <div class="card skeleton"></div>
+  <div class="card skeleton"></div>
+  <div class="card skeleton"></div>
+  <div class="card skeleton"></div>
+{{end}}
