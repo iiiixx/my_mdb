@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 import numpy as np
+import threading
 
 from .model_loader import SVDModel
 
@@ -29,11 +30,16 @@ class Recommender:
     """
 
     def __init__(self, model: SVDModel):
-        self.m = model
-        qi = np.asarray(self.m.qi, dtype=np.float32)
-        norms = np.linalg.norm(qi, axis=1, keepdims=True)
-        eps = 1e-12
-        self._qi_norm = qi / (norms + eps)
+        self._lock = threading.RLock()
+        self.set_model(model)
+
+    def set_model(self, model: SVDModel) -> None:
+        with self._lock:
+            self.m = model
+            qi = np.asarray(self.m.qi, dtype=np.float32)
+            norms = np.linalg.norm(qi, axis=1, keepdims=True)
+            eps = 1e-12
+            self._qi_norm = qi / (norms + eps)
 
     def recommend(
         self,
@@ -45,20 +51,24 @@ class Recommender:
         if limit <= 0:
             return []
 
-        uid = self.m.raw2inner_user.get(str(user_id))
+        # Берём "снимок" текущей модели под lock,
+        # чтобы она не поменялась посреди расчёта.
+        with self._lock:
+            m = self.m
+
+        uid = m.raw2inner_user.get(str(user_id))
         if uid is None:
             return []
 
-        pu_u = self.m.pu[uid]
-        scores = self.m.mu + self.m.bu[uid] + self.m.bi + (self.m.qi @ pu_u)
+        pu_u = m.pu[uid]
+        scores = m.mu + m.bu[uid] + m.bi + (m.qi @ pu_u)
 
         if exclude_movie_ids:
             bad_inner = []
             for mid in exclude_movie_ids:
-                iid = self.m.raw2inner_item.get(str(mid))
+                iid = m.raw2inner_item.get(str(mid))
                 if iid is not None:
                     bad_inner.append(iid)
-
             if bad_inner:
                 scores = scores.copy()
                 scores[np.array(bad_inner, dtype=np.int64)] = -np.inf
@@ -67,15 +77,23 @@ class Recommender:
             scores = scores.copy()
             scores[scores < float(min_score)] = -np.inf
 
+        # Чем меньше JITTER, тем ближе к строгому топу.
+        JITTER = 0.05
+        if JITTER > 0:
+            mask = np.isfinite(scores)
+            noisy = scores.copy()
+            noisy[mask] = noisy[mask] + (np.random.standard_normal(mask.sum()) * JITTER)
+        else:
+            noisy = scores
+
         n = min(limit, scores.shape[0])
-        idx = np.argpartition(-scores, n - 1)[:n]
+        idx = np.argpartition(-noisy, n - 1)[:n]
         idx = idx[np.argsort(-scores[idx])]
 
         out: list[RecommendItem] = []
         for iid in idx:
-            raw_mid = self.m.inner2raw_item[int(iid)]
+            raw_mid = m.inner2raw_item[int(iid)]
             out.append(RecommendItem(movie_id=int(raw_mid), score=float(scores[iid])))
-
         return out
 
     def similar_movies(
@@ -87,13 +105,16 @@ class Recommender:
     ) -> list[SimilarItem]:
         if limit <= 0:
             return []
+        with self._lock:
+            m = self.m
+            qi_norm = self._qi_norm
 
-        iid = self.m.raw2inner_item.get(str(movie_id))
+        iid = m.raw2inner_item.get(str(movie_id))
         if iid is None:
             return []
 
-        v = self._qi_norm[int(iid)]  
-        sims = self._qi_norm @ v     
+        v = qi_norm[int(iid)]  
+        sims = qi_norm @ v     
 
         sims = sims.copy()
         sims[int(iid)] = -np.inf
@@ -101,7 +122,7 @@ class Recommender:
         if exclude_movie_ids:
             bad_inner = []
             for mid in exclude_movie_ids:
-                j = self.m.raw2inner_item.get(str(mid))
+                j = m.raw2inner_item.get(str(mid))
                 if j is not None:
                     bad_inner.append(j)
             if bad_inner:
@@ -117,7 +138,7 @@ class Recommender:
 
         out: list[SimilarItem] = []
         for j in idx:
-            raw_mid = self.m.inner2raw_item[int(j)]
+            raw_mid = m.inner2raw_item[int(j)]
             out.append(SimilarItem(movie_id=int(raw_mid), similarity=float(sims[int(j)])))
 
         return out
