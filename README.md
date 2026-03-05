@@ -87,19 +87,19 @@ Recommendation service:
 
 # Демонстрация
 <img width="947" height="594" alt="image" src="https://github.com/user-attachments/assets/4354aa0b-8130-418d-b726-1955c9b28751" />
-
+---
 <img width="1076" height="801" alt="image" src="https://github.com/user-attachments/assets/f011195b-f642-4ab2-9b2c-f670eca540fe" />
-
+---
 <img width="1080" height="725" alt="image" src="https://github.com/user-attachments/assets/f4159643-f9ae-4223-b588-05240bdd9b16" />
-
-<img width="593" height="239" alt="image" src="https://github.com/user-attachments/assets/4fd46727-60d3-4f54-a624-10256b7742b2" />
-
+---
+<img width="979" height="409" alt="image" src="https://github.com/user-attachments/assets/4f44a7a4-2586-4916-9228-ccee69f4b5e6" />
+---
 <img width="1068" height="797" alt="image" src="https://github.com/user-attachments/assets/5029ff42-9530-45d1-b99f-75fb94509e8c" />
-
-<img width="951" height="801" alt="image" src="https://github.com/user-attachments/assets/90f72be4-abb4-4c57-aae9-898882a9e4ba" />
-
+---
+<img width="1068" height="800" alt="image" src="https://github.com/user-attachments/assets/238edd3f-9522-479b-8c29-0651bb4793eb" />
+---
 <img width="1080" height="260" alt="image" src="https://github.com/user-attachments/assets/021df7ef-8303-4b67-b4f3-848bdf8af489" />
-
+---
 
 ## Назначение проекта
 
