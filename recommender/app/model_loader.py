@@ -27,6 +27,10 @@ class SVDModel:
 def load_model(model_dir: str | Path) -> SVDModel:
     model_dir = Path(model_dir)
 
+    ready = model_dir / "ready"
+    if not ready.exists():
+        raise RuntimeError(f"Model not ready (missing {ready})")
+
     factors_path = model_dir / "svd_factors.npz" 
     meta_path = model_dir / "svd_meta.pkl" 
 

@@ -10,6 +10,11 @@ from app.recommender import Recommender
 from app.logger import setup_logger
 from gen import recs_pb2, recs_pb2_grpc
 
+import os
+import threading
+import time
+from pathlib import Path
+
 MAX_LIMIT = 200
 class RecommenderService(recs_pb2_grpc.RecommenderServicer):
     def __init__(self, rec: Recommender, logger: logging.Logger):
@@ -77,6 +82,27 @@ class RecommenderService(recs_pb2_grpc.RecommenderServicer):
             ]
         )
 
+def start_model_reloader(logger: logging.Logger, rec: Recommender, model_current_dir: str, period_sec: int = 60):
+    current_path = Path(model_current_dir)
+    state = {"real": os.path.realpath(current_path)}
+
+    def loop():
+        while True:
+            try:
+                real = os.path.realpath(current_path)
+                if real != state["real"]:
+                    logger.info(f"model current changed: {state['real']} -> {real}")
+                    new_m = load_model(real)
+                    rec.set_model(new_m)
+                    state["real"] = real
+                    logger.info(f"model reloaded OK users={new_m.n_users} items={new_m.n_items} k={new_m.k}")
+            except Exception:
+                logger.exception("model reload failed")
+            time.sleep(period_sec)
+
+    t = threading.Thread(target=loop, daemon=True)
+    t.start()
+    return t
 
 def serve(
     host: str,
@@ -89,6 +115,7 @@ def serve(
     logger.info("loading model...")
     m = load_model(model_dir)
     rec = Recommender(m)
+    start_model_reloader(logger, rec, model_dir, period_sec=60)
 
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=max_workers),
