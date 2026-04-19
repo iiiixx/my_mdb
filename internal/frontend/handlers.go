@@ -48,18 +48,31 @@ func (h *Handlers) RequireAuth(next http.Handler) http.Handler {
 }
 
 func (h *Handlers) LoginPage(w http.ResponseWriter, r *http.Request) {
-	h.R.Render(w, "login.html", PageData{Title: "Login", UserID: 0})
+	h.R.Render(w, "login.html", PageData{
+		Title:  "Login",
+		UserID: 0,
+		Page:   "login",
+	})
 }
 
 func (h *Handlers) LoginPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		h.R.Render(w, "login.html", PageData{Title: "Login", Error: "bad form"})
+		h.R.Render(w, "login.html", PageData{
+			Title: "Login",
+			Error: "bad form",
+			Page:  "login",
+		})
 		return
 	}
+
 	idStr := r.FormValue("user_id")
 	uid, _ := strconv.Atoi(idStr)
 	if uid <= 0 {
-		h.R.Render(w, "login.html", PageData{Title: "Login", Error: "invalid user id"})
+		h.R.Render(w, "login.html", PageData{
+			Title: "Login",
+			Error: "invalid user id",
+			Page:  "login",
+		})
 		return
 	}
 
