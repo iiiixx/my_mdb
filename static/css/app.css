@@ -349,50 +349,62 @@ body{
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
 /* login */
-.login{
-  max-width: 320px;         
-  margin: 200px auto;        
+.login {
+  max-width: 320px;
+  margin: 200px auto;
 }
 
 .login__form{
   display:flex;
   flex-direction:column;
-  gap: 8px;                  
-  padding: 18px 18px 6px;           
-  background: #121214;     
+  gap: 16px;
+  padding: 36px 28px 24px;
+  background: #121214;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 16px;
+}
+
+.login__form label{
+  font-size: 18px;
 }
 
 .login__form input{
-  padding: 8px 10px;        
-  border-radius: 8px;
+  padding: 16px 16px;
+  border-radius: 10px;
   border: 1px solid var(--line);
   background: #0f0f10;
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .login__form button{
-  padding: 8px 10px;
-  font-size: 14px;
+  padding: 14px 16px;
+  font-size: 16px;
 }
 
 .login__actions{
   display:flex;
-  gap:10px;
+  gap:12px;
   align-items:center;
-}
-#registerMsg{
-  margin-top: 8px;
-}
-#registerBtn{
-  margin-left: 60px;
+  justify-content:space-between;
 }
 
 .error{
-  font-size: 13px;
-  color: #ffb3ea;
+  font-size: 15px;
+}
+
+#registerMsg{
+  margin-top: 12px;
+  font-size: 15px;
+}
+
+#registerBtn{
+  margin-left: 0;
+}
+
+.login h1 {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .movie-info-row{

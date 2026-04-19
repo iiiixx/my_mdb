@@ -13,6 +13,7 @@
   data-page="{{.Page}}" 
   data-param="{{.Param}}">
 
+{{if ne .Page "login"}}
 <header class="header">
   <div class="header__inner">
     <a class="logo" href="/">MyMDB</a>
@@ -37,6 +38,7 @@
   <a href="/genres">Жанры</a>
   <a href="/recommended">Для вас</a>
 </div>
+{{end}}
 
 <main class="page">
   {{block "content" .}}{{end}}
